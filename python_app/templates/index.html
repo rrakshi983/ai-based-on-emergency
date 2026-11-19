@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedPulse Hassan — Python AI Emergency Healthcare &amp; Hospital System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+  />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <!-- LOGIN / REGISTER VIEW -->
+  <section id="auth-view" class="auth-layout">
+    <div class="auth-hero">
+      <div class="brand-row">
+        <span class="brand-mark">+</span>
+        <span class="brand-name">MedPulse Hassan</span>
+        <span class="helpline">Karnataka Emergency: 108 · 112</span>
+      </div>
+      <div class="hero-copy">
+        <p class="kicker">Hassan District AI Emergency Healthcare</p>
+        <h1>Nearest hospital, available doctor, and voice AI triage in seconds.</h1>
+        <p class="subtitle">
+          Built with Python (Flask), HTML, CSS, and JavaScript. Traces your live GPS location in
+          Hassan, matches diseases to 24x7 hospitals and live doctor slots, books emergency vehicles,
+          and speaks clinical recommendations aloud.
+        </p>
+        <div class="hero-stats">
+          <div><strong class="mono">06</strong><span>Hassan Hospitals</span></div>
+          <div><strong class="mono">06</strong><span>Live Specialists</span></div>
+          <div><strong class="mono">KA-13</strong><span>Ambulance &amp; Cab Fleet</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-panel">
+      <div class="auth-card">
+        <h2 id="auth-title">Sign in to MedPulse Hassan</h2>
+        <p class="muted" id="auth-subtitle">
+          Access AI triage, voice chatbot, live GPS tracing, and instant bookings.
+        </p>
+
+        <div class="segmented" role="tablist">
+          <button type="button" id="tab-signin" class="seg-btn active">Sign In</button>
+          <button type="button" id="tab-register" class="seg-btn">Create Account</button>
+        </div>
+
+        <div id="auth-error" class="alert hidden"></div>
+
+        <form id="auth-form" class="form-stack">
+          <div id="register-fields" class="form-stack hidden">
+            <label>Full Name
+              <input type="text" id="auth-name" placeholder="e.g. Rakshith Gowda" />
+            </label>
+            <div class="grid-2">
+              <label>Mobile Number
+                <input type="tel" id="auth-phone" value="+91 " />
+              </label>
+              <label>Blood Group
+                <select id="auth-blood">
+                  <option>O+</option><option>O-</option><option>A+</option><option>A-</option>
+                  <option>B+</option><option>B-</option><option>AB+</option><option>AB-</option>
+                </select>
+              </label>
+            </div>
+            <label>Emergency Contact
+              <input type="tel" id="auth-emergency" placeholder="+91 98450 61299" />
+            </label>
+          </div>
+
+          <label>Email Address
+            <input type="email" id="auth-email" value="patient@hassan.care" required />
+          </label>
+          <label>Password
+            <input type="password" id="auth-password" value="hassan123" minlength="6" required />
+          </label>
+
+          <button type="submit" class="btn btn-primary" id="auth-submit-btn">
+            Sign In to Dashboard
+          </button>
+        </form>
+
+        <button type="button" id="demo-login-btn" class="btn btn-danger-outline">
+          Continue with Hassan Demo Patient Profile
+        </button>
+
+        <p class="tiny muted">
+          Demo account: <span class="mono">patient@hassan.care</span> /
+          <span class="mono">hassan123</span>. For critical emergencies, dial
+          <strong class="mono">108</strong>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN DASHBOARD VIEW -->
+  <div id="dashboard-view" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-mark">+</span>
+        <span class="brand-name">MedPulse Hassan</span>
+      </div>
+      <nav class="side-nav" id="side-nav">
+        <button type="button" class="nav-btn active" data-view="triage">AI Disease Triage</button>
+        <button type="button" class="nav-btn" data-view="chat">AI Chatbot &amp; Voice</button>
+        <button type="button" class="nav-btn" data-view="doctors">Doctors &amp; Booking</button>
+        <button type="button" class="nav-btn" data-view="hospitals">Hassan Hospitals &amp; GPS</button>
+        <button type="button" class="nav-btn" data-view="vehicles">Emergency Vehicle Booking</button>
+        <button type="button" class="nav-btn" data-view="bookings">My Bookings &amp; Trace Log</button>
+      </nav>
+      <div class="sidebar-footer">
+        <div id="user-summary" class="user-summary"></div>
+        <button type="button" id="logout-btn" class="link-danger">Sign Out</button>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div>
+          <span class="muted">Hassan District / </span>
+          <strong id="topbar-title">AI Disease Triage</strong>
+        </div>
+        <div class="topbar-actions">
+          <button type="button" id="gps-trace-btn" class="btn btn-secondary">
+            Start Live GPS Trace
+          </button>
+          <button type="button" id="quick-cab-btn" class="btn btn-danger">
+            Book Emergency Vehicle
+          </button>
+        </div>
+      </header>
+
+      <div id="toast-bar" class="toast hidden"></div>
+
+      <main class="main-content">
+        <!-- KPI STRIP -->
+        <section class="kpi-strip">
+          <div class="kpi-cell">
+            <span class="muted">Live GPS Location</span>
+            <strong id="kpi-gps" class="mono">13.0072, 76.0996</strong>
+            <span id="kpi-gps-label" class="tiny muted">Hassan City Center</span>
+          </div>
+          <div class="kpi-cell">
+            <span class="muted">Nearest Hassan Hospital</span>
+            <strong id="kpi-nearest">HIMS Teaching Hospital</strong>
+            <span id="kpi-nearest-meta" class="tiny mono muted">-- km · -- min</span>
+          </div>
+          <div class="kpi-cell">
+            <span class="muted">Doctors Available Now</span>
+            <strong id="kpi-doctors" class="mono accent-green">--</strong>
+            <span class="tiny muted">Live Hassan specialists</span>
+          </div>
+          <div class="kpi-cell">
+            <span class="muted">ER Beds Open</span>
+            <strong id="kpi-beds" class="mono">--</strong>
+            <span class="tiny muted">Across 6 Hassan centers</span>
+          </div>
+        </section>
+
+        <!-- VIEW 1: AI DISEASE TRIAGE -->
+        <section id="view-triage" class="panel-view">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h2>AI Disease &amp; Emergency Triage (Hassan)</h2>
+                <p class="muted">
+                  Describe symptoms or press Voice Input to match the best Hassan hospital and
+                  currently available doctor.
+                </p>
+              </div>
+              <span class="mono danger-text">Emergency: 108</span>
+            </div>
+
+            <form id="triage-form" class="form-stack">
+              <textarea
+                id="triage-query"
+                rows="3"
+                placeholder="Example: Sudden chest pain radiating to left arm with sweating near Vidyanagar Hassan..."
+                required
+              ></textarea>
+              <div class="row-between">
+                <div class="btn-group">
+                  <button type="button" id="triage-voice-btn" class="btn btn-secondary">
+                    Voice Input (Mic)
+                  </button>
+                  <button type="button" class="btn btn-ghost scenario-btn" data-q="Sudden crushing chest pain and sweating near BM Road Hassan">
+                    Chest Pain
+                  </button>
+                  <button type="button" class="btn btn-ghost scenario-btn" data-q="Road accident near Hassan Ring Road with leg fracture">
+                    Road Trauma
+                  </button>
+                  <button type="button" class="btn btn-ghost scenario-btn" data-q="6-year-old child with 103F fever and vomiting in Hassan">
+                    Child Fever
+                  </button>
+                </div>
+                <button type="submit" id="triage-submit-btn" class="btn btn-primary">
+                  Recommend Hospital &amp; Doctor
+                </button>
+              </div>
+            </form>
+            <div id="triage-result" class="triage-output hidden"></div>
+          </div>
+        </section>
+
+        <!-- VIEW 2: AI CHATBOT & VOICE RECOMMENDATION -->
+        <section id="view-chat" class="panel-view hidden">
+          <div class="card chat-shell">
+            <div class="card-head">
+              <div>
+                <h2>AI Healthcare Chatbot &amp; Voice Recommendation System</h2>
+                <p class="muted">
+                  Speak or type symptoms. Responses include spoken voice guidance and direct Hassan
+                  hospital &amp; doctor recommendations.
+                </p>
+              </div>
+              <div class="btn-group">
+                <select id="voice-lang" class="select-sm">
+                  <option value="en-IN">Voice: English (IN)</option>
+                  <option value="kn-IN">Voice: Kannada (IN)</option>
+                  <option value="en-US">Voice: English (US)</option>
+                </select>
+                <button type="button" id="toggle-autospeak" class="btn btn-secondary">
+                  Auto-Speak: ON
+                </button>
+              </div>
+            </div>
+
+            <div id="chat-messages" class="chat-feed"></div>
+
+            <form id="chat-form" class="chat-input-bar">
+              <button type="button" id="chat-mic-btn" class="btn btn-secondary">Speak</button>
+              <input
+                type="text"
+                id="chat-input"
+                placeholder="Ask about symptoms, nearest Hassan hospital, or speak via mic..."
+                required
+              />
+              <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+          </div>
+        </section>
+
+        <!-- VIEW 3: DOCTORS AVAILABILITY & BOOKING -->
+        <section id="view-doctors" class="panel-view hidden">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h2>Hassan Specialist Doctors &amp; Live Slot Booking</h2>
+                <p class="muted">Filter by disease or specialty and click any open time slot to book.</p>
+              </div>
+              <input
+                type="search"
+                id="doctor-search"
+                class="input-sm"
+                placeholder="Search disease, doctor, or specialty..."
+              />
+            </div>
+            <div id="doctors-grid" class="cards-grid"></div>
+          </div>
+        </section>
+
+        <!-- VIEW 4: HASSAN HOSPITALS & LIVE GPS TRACER -->
+        <section id="view-hospitals" class="panel-view hidden">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h2>Live Hassan GPS Location Tracer &amp; Nearest Hospitals Map</h2>
+                <p class="muted">
+                  Real-time GPS coordinates plotted with Hassan hospitals sorted by driving distance.
+                </p>
+              </div>
+              <div class="btn-group">
+                <select id="landmark-select" class="select-sm"></select>
+                <button type="button" id="locate-once-btn" class="btn btn-secondary">
+                  Locate My GPS
+                </button>
+              </div>
+            </div>
+            <div id="hassan-map" class="map-box"></div>
+            <div id="hospitals-list" class="cards-grid mt-16"></div>
+          </div>
+        </section>
+
+        <!-- VIEW 5: EMERGENCY VEHICLE BOOKING -->
+        <section id="view-vehicles" class="panel-view hidden">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h2>Emergency Vehicle &amp; Ambulance Dispatch (KA-13 Hassan)</h2>
+                <p class="muted">
+                  Book a Priority Medical Cab, Wheelchair Van, BLS Ambulance, or ICU Cardiac Ambulance.
+                </p>
+              </div>
+            </div>
+            <form id="vehicle-form" class="form-stack">
+              <div class="grid-2">
+                <label>Destination Hassan Hospital
+                  <select id="veh-hospital" required></select>
+                </label>
+                <label>Vehicle Category
+                  <select id="veh-category" required>
+                    <option>Priority Medical Cab</option>
+                    <option>Wheelchair Access Van</option>
+                    <option>BLS Ambulance</option>
+                    <option>ICU Cardiac Ambulance</option>
+                  </select>
+                </label>
+              </div>
+              <div class="grid-2">
+                <label>Patient Name
+                  <input type="text" id="veh-patient" required />
+                </label>
+                <label>Contact Phone
+                  <input type="tel" id="veh-phone" required />
+                </label>
+              </div>
+              <label>Pickup Location in Hassan
+                <input type="text" id="veh-pickup-label" value="Hassan City Center, BM Road" required />
+              </label>
+              <button type="submit" class="btn btn-danger">Dispatch Emergency Vehicle Now</button>
+            </form>
+            <div id="vehicle-confirm" class="triage-output hidden"></div>
+          </div>
+        </section>
+
+        <!-- VIEW 6: MY BOOKINGS & TRACE LOG -->
+        <section id="view-bookings" class="panel-view hidden">
+          <div class="card">
+            <h2>Confirmed Doctor Appointments</h2>
+            <div id="appointments-list" class="list-stack mt-12"></div>
+          </div>
+          <div class="card mt-16">
+            <h2>Emergency Vehicle Dispatch History</h2>
+            <div id="vehicles-history" class="list-stack mt-12"></div>
+          </div>
+          <div class="card mt-16">
+            <h2>Live GPS Location Trace Log (Hassan)</h2>
+            <div id="trace-log-list" class="list-stack mt-12"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- SLOT BOOKING MODAL -->
+  <div id="booking-modal" class="modal hidden">
+    <div class="modal-card">
+      <div class="card-head">
+        <h3 id="modal-doc-name">Book Appointment</h3>
+        <button type="button" id="modal-close-btn" class="btn btn-ghost">Close</button>
+      </div>
+      <p id="modal-doc-meta" class="muted"></p>
+      <form id="booking-form" class="form-stack mt-12">
+        <input type="hidden" id="book-doc-id" />
+        <label>Select Open Time Slot
+          <select id="book-slot-id" required></select>
+        </label>
+        <label>Patient Name
+          <input type="text" id="book-patient-name" required />
+        </label>
+        <label>Phone Number
+          <input type="tel" id="book-patient-phone" required />
+        </label>
+        <label>Disease / Symptoms Note
+          <input type="text" id="book-symptoms" placeholder="Describe symptoms..." required />
+        </label>
+        <button type="submit" class="btn btn-primary">Confirm Live Slot Token</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

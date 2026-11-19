@@ -1,0 +1,11 @@
+{
+  "name": "Remix MedPulse Hassan",
+  "description": "AI-powered emergency hospital triage, real-time doctor availability \u0026 appointment booking, live Hassan route navigation, and emergency cab dispatch.",
+  "requestFramePermissions": [
+    "geolocation",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
